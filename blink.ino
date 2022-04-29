@@ -25,7 +25,6 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 
 void setup() {
  Serial.begin(115200);
- wifiManager.resetSettings();
  Serial.println("mounting FS...");
 
   if (SPIFFS.begin()) {
@@ -100,12 +99,15 @@ void setup() {
 }
  
 void loop() {
+String Stringone=String(Device_ID);
+String Stringtwo="LOW";
+String Stringthree="HIGH";
   if(WiFi.status()== WL_CONNECTED){
   digitalWrite(BUILTIN_LED, LOW);
-  Serial.println(Device_ID);
+  Serial.println(Stringone+Stringtwo);
   delay(1000); 
   digitalWrite(BUILTIN_LED, HIGH); 
-  Serial.println("HIGH");
+  Serial.println(Stringone+Stringthree);
   delay(1000);
     }
 }
