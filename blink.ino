@@ -1,4 +1,3 @@
-
 #include <ESP8266WiFi.h>        
 //needed for library
 #include <DNSServer.h>
@@ -6,8 +5,10 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiManager.h>
 #include <ArduinoJson.h> 
+#include <WiFiClient.h>
 WiFiManager wifiManager;
 char Device_ID[20];
+int smokeA0 = A0;
 //flag for saving data
 bool shouldSaveConfig = false;
 
@@ -58,7 +59,7 @@ void setup() {
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
  }
-
+ wifiManager.resetSettings();
  WiFiManagerParameter custom_output("Device_ID", "Device_ID",Device_ID , 20);
  wifiManager.setSaveConfigCallback(saveConfigCallback);
  wifiManager.addParameter(&custom_output);
@@ -83,7 +84,7 @@ void setup() {
     //end save
   }
   pinMode(BUILTIN_LED,OUTPUT);
-
+  //pinMode(smokeA0, INPUT);
   Serial.print(F("IP --> "));
   Serial.println(WiFi.localIP());
   Serial.print(F("GW --> "));
@@ -97,17 +98,52 @@ void setup() {
   Serial.print(F("DNS 2 --> "));
   Serial.println(WiFi.dnsIP(1));
 }
- 
-void loop() {
-String Stringone=String(Device_ID);
-String Stringtwo="LOW";
-String Stringthree="HIGH";
-  if(WiFi.status()== WL_CONNECTED){
+void loop(){
+	send();
+	smoke();
+}
+	
+//-------------------------------------------------------------------------------------------------------	
+void smoke(){
+
+
+int analogSensor = analogRead(smokeA0);
+Serial.println(analogSensor);
+if(WiFi.status()==WL_CONNECTED)
+{
+	const char* server = "http://api.thingspeak.com/update";
+	String my_Api_key = "VV4KANZLJPWOUUIP";
+	WiFiClient wifiClient;
+	HTTPClient http;
+	http.begin(wifiClient,server);
+	// Specify content-type header
+	http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+	String httpRequestData = "api_key=" + my_Api_key + "&field1=" + String(analogSensor);
+	int httpResponseCode = http.POST(httpRequestData);
+}
+
+}
+//-------------------------------------------------------------------------------------------------------
+void send(){
+
+if(WiFi.status()==WL_CONNECTED){
   digitalWrite(BUILTIN_LED, LOW);
-  Serial.println(Stringone+Stringtwo);
   delay(1000); 
   digitalWrite(BUILTIN_LED, HIGH); 
-  Serial.println(Stringone+Stringthree);
   delay(1000);
-    }
 }
+
+if(WiFi.status()==WL_CONNECTED)
+{
+	const char* server = "http://api.thingspeak.com/update";
+	String my_Api_key = "JU0DQTQ7J0YFJEP5";
+	WiFiClient wifiClient;
+	HTTPClient http;
+	http.begin(wifiClient,server);
+	// Specify content-type header
+	http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+	String httpRequestData = "api_key=" + my_Api_key + "&field1=" + String(random(100));
+	int httpResponseCode = http.POST(httpRequestData);
+}
+}
+
